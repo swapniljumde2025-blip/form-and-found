@@ -1,0 +1,17 @@
+node_modules/
+.env
+uploads/*
+!uploads/.gitkeep
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
+.DS_Store
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
