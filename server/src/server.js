@@ -13,6 +13,7 @@ import orderRoutes from './routes/orders.js';
 
 dotenv.config();
 const app = express();
+app.set('trust proxy', 1);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({ origin: process.env.CLIENT_URL?.split(',') || true, credentials: true }));
