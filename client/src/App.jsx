@@ -16,6 +16,7 @@ export default function App(){
  const [cart,setCart]=useState(()=>JSON.parse(localStorage.getItem('store_cart')||'[]')), [drawer,setDrawer]=useState(false), [selected,setSelected]=useState(null), [checkout,setCheckout]=useState(false);
  const [admin,setAdmin]=useState(!!localStorage.getItem('store_admin_token')), [adminOpen,setAdminOpen]=useState(false), [orders,setOrders]=useState([]), [editing,setEditing]=useState(null), [form,setForm]=useState(blank), [notice,setNotice]=useState('');
  const [login,setLogin]=useState({email:'',password:''}), [busy,setBusy]=useState(false);
+const [expandedOrder,setExpandedOrder]=useState(null);
  const refresh=async()=>{try{const p=await api('/products');setProducts(p);}catch(e){setNotice('Showing preview products. Connect the API and MongoDB to load your live catalogue.');}finally{setLoading(false);}};
  useEffect(()=>{refresh();},[]);
  useEffect(()=>{localStorage.setItem('store_cart',JSON.stringify(cart));},[cart]);
@@ -43,7 +44,119 @@ export default function App(){
    {!admin?<form className="login-form" onSubmit={doLogin}><input type="email" placeholder="Owner email" required value={login.email} onChange={e=>setLogin({...login,email:e.target.value})}/><input type="password" placeholder="Password" required value={login.password} onChange={e=>setLogin({...login,password:e.target.value})}/><button className="btn btn-dark" disabled={busy}>Sign in <ArrowUpRight size={16}/></button><small>First setup: configure the server .env and run npm run seed:admin.</small></form>:
    <><div className="admin-tabs"><span>{products.length} products</span><span>{orders.length} orders</span></div><div className="admin-grid"><form className="product-form" onSubmit={saveProduct}><h3>{editing?'Edit product':'Add a new product'}</h3><div className="form-grid"><label>Product name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Price (₹)<input type="number" min="0" required value={form.price} onChange={e=>setForm({...form,price:e.target.value})}/></label><label>Category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categories.slice(1).map(c=><option>{c}</option>)}</select></label><label>Material<input value={form.material} onChange={e=>setForm({...form,material:e.target.value})}/></label><label>Dimensions<input placeholder="e.g. 10 × 8 × 12 cm" value={form.dimensions} onChange={e=>setForm({...form,dimensions:e.target.value})}/></label><label>Stock<input type="number" min="0" value={form.stock} onChange={e=>setForm({...form,stock:e.target.value})}/></label><label className="wide">Available colours<input value={form.colorOptions} onChange={e=>setForm({...form,colorOptions:e.target.value})}/></label><label className="wide">Description<textarea rows="3" required value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label><label className="wide">Product photos<input type="file" name="imageFiles" accept="image/*" multiple/></label></div><div className="checks"><label><input type="checkbox" checked={form.featured} onChange={e=>setForm({...form,featured:e.target.checked})}/> Featured</label><label><input type="checkbox" checked={form.madeToOrder} onChange={e=>setForm({...form,madeToOrder:e.target.checked})}/> Made to order</label></div><div className="form-actions"><button className="btn btn-dark" disabled={busy}>{busy?'Saving…':'Save product'} <Check size={16}/></button>{editing&&<button type="button" className="btn btn-light" onClick={()=>{setEditing(null);setForm(blank);}}>Cancel</button>}</div></form>
    <div className="admin-side"><h3>Catalogue</h3>{products.map(p=><div className="admin-product" key={p._id}><span>{p.name}<small>{money(p.price)} · {p.stock??'—'} in stock</small></span><button onClick={()=>editProduct(p)}><Pencil size={15}/></button><button onClick={()=>deleteProduct(p._id)}><Trash2 size={15}/></button></div>)}</div></div>
-   <div className="orders-admin"><h3>Recent orders</h3>{orders.length===0?<p className="muted">New orders will appear here.</p>:orders.map(o=><div className="order-row" key={o._id}><div><b>#{o._id.slice(-7).toUpperCase()}</b><small>{o.customer?.name} · {money(o.total)}</small></div><select value={o.status} onChange={e=>updateStatus(o._id,e.target.value)}>{['placed','confirmed','printing','shipped','delivered','cancelled'].map(s=><option value={s}>{s}</option>)}</select></div>)}</div></>}
+   
+<div className="orders-admin">
+  <h3>Recent orders ({orders.length})</h3>
+
+  {orders.length === 0 ? (
+    <p className="muted">New orders will appear here.</p>
+  ) : (
+    orders.map(o => (
+      <div className="order-row" key={o._id}>
+        <div className="order-details">
+          <div className="order-summary">
+            <div>
+              <b>#{o._id.slice(-7).toUpperCase()}</b>
+              <small>{o.customer?.name} · {money(o.total)}</small>
+              <small>
+                {new Date(o.createdAt).toLocaleString('en-IN')}
+              </small>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-light"
+              onClick={() =>
+                setExpandedOrder(
+                  expandedOrder === o._id ? null : o._id
+                )
+              }
+            >
+              {expandedOrder === o._id ? 'Hide details' : 'View details'}
+            </button>
+          </div>
+
+          {expandedOrder === o._id && (
+            <div className="order-expanded">
+              <h4>Products ordered</h4>
+
+              {o.items?.map((item, index) => (
+                <div className="order-item" key={index}>
+                  {item.image ? (
+                    <img
+                      src={imageUrl(item.image)}
+                      alt={item.name}
+                    />
+                  ) : (
+                    <div className="order-item-placeholder">✳</div>
+                  )}
+
+                  <div>
+                    <b>{item.name}</b>
+                    <small>Colour: {item.color || 'Standard'}</small>
+                    <small>Quantity: {item.quantity}</small>
+                    <small>Unit price: {money(item.price)}</small>
+                  </div>
+
+                  <b>{money(item.price * item.quantity)}</b>
+                </div>
+              ))}
+
+              <div className="order-customer">
+                <h4>Customer details</h4>
+                <p><b>Name:</b> {o.customer?.name}</p>
+                <p><b>Email:</b> {o.customer?.email || 'Not provided'}</p>
+                <p><b>Phone:</b> {o.customer?.phone}</p>
+              </div>
+
+              <div className="order-customer">
+                <h4>Delivery address</h4>
+                <p>{o.shippingAddress?.line1}</p>
+                {o.shippingAddress?.line2 && (
+                  <p>{o.shippingAddress.line2}</p>
+                )}
+                <p>
+                  {o.shippingAddress?.city},
+                  {' '}{o.shippingAddress?.state}
+                  {' - '}{o.shippingAddress?.postalCode}
+                </p>
+                <p>{o.shippingAddress?.country || 'India'}</p>
+              </div>
+
+              {o.notes && (
+                <div className="order-customer">
+                  <h4>Order notes</h4>
+                  <p>{o.notes}</p>
+                </div>
+              )}
+
+              <div className="order-total">
+                <span>Subtotal: {money(o.subtotal)}</span>
+                <span>Shipping: {money(o.shipping)}</span>
+                <strong>Total: {money(o.total)}</strong>
+                <span>Payment: {(o.paymentMethod || 'cod').toUpperCase()}</span>
+                <span>Payment status: {o.paymentStatus || 'pending'}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="order-status">
+            <label>Order status</label>
+            <select
+              value={o.status}
+              onChange={e => updateStatus(o._id, e.target.value)}
+            >
+              {['placed', 'confirmed', 'printing', 'shipped', 'delivered', 'cancelled'].map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+    ))
+  )}
+</div>
+</>}
   </section>}
   <main><section className="hero"><div className="hero-copy"><span className="eyebrow"><Sparkles size={14}/> SMALL BATCH. BIG IMAGINATION.</span><h1>Make room<br/>for <em>wonder.</em></h1><p>Freshly imagined objects for your desk, home and everyday rituals. Designed with curiosity. Made layer by layer.</p><a className="btn btn-dark" href="#shop">Explore the collection <ArrowUpRight size={17}/></a><div className="hero-note"><span>01 / 03</span><i></i> DESIGNED WITH INTENTION</div></div><div className="hero-art"><div className="art-orbit orbit-one"></div><div className="art-orbit orbit-two"></div><div className="hero-object"><div className="vase-neck"></div><div className="vase-body"></div><div className="vase-base"></div></div><div className="art-label label-top">FORM STUDY Nº 01</div><div className="art-label label-bottom">PRINTED, NOT MASS-PRODUCED.</div><span className="art-star">✳</span></div></section>
   <section className="trust-row"><div><Box/><span><b>Made to order</b><small>Less waste, more wonder</small></span></div><div><PackageCheck/><span><b>Quality checked</b><small>Every piece, by hand</small></span></div><div><Truck/><span><b>Delivered to you</b><small>Across India</small></span></div><div><ShieldCheck/><span><b>Secure checkout</b><small>Payment options coming soon</small></span></div></section>
