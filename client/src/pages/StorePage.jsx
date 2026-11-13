@@ -2,7 +2,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Search, ShoppingBag, X, ArrowUpRight, Plus, Minus,
-  Trash2, Box, PackageCheck, Truck, ShieldCheck, Sparkles
+  Trash2, Box, PackageCheck, Truck, ShieldCheck, Sparkles,
+  ChevronLeft, ChevronRight, Maximize2
 } from 'lucide-react';
 import { api, imageUrl, money } from '../api';
 import '../styles.css';
@@ -98,6 +99,8 @@ export default function StorePage() {
 
   const [drawer, setDrawer] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
 
   const [admin, setAdmin] = useState(
@@ -139,6 +142,40 @@ export default function StorePage() {
     localStorage.setItem('store_cart', JSON.stringify(cart));
   }, [cart]);
 
+  // Keyboard navigation for product gallery and full-screen preview
+  useEffect(() => {
+    if (!selected) return;
+
+    const handleKeyDown = e => {
+      const imageCount = selected.images?.length || 0;
+
+      if (e.key === 'Escape') {
+        if (imagePreviewOpen) {
+          setImagePreviewOpen(false);
+        } else {
+          setSelected(null);
+          setSelectedImageIndex(0);
+        }
+      }
+
+      if (imageCount > 1 && e.key === 'ArrowRight') {
+        setSelectedImageIndex(i => (i + 1) % imageCount);
+      }
+
+      if (imageCount > 1 && e.key === 'ArrowLeft') {
+        setSelectedImageIndex(
+          i => (i - 1 + imageCount) % imageCount
+        );
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selected, imagePreviewOpen]);
+
   const visible = useMemo(
     () =>
       products
@@ -169,6 +206,12 @@ export default function StorePage() {
 
   const shipping = subtotal >= 1499 ? 0 : subtotal ? 79 : 0;
 
+  const closeProductModal = () => {
+    setSelected(null);
+    setSelectedImageIndex(0);
+    setImagePreviewOpen(false);
+  };
+
   const add = (p, color) => {
     setCart(old => {
       const found = old.find(
@@ -195,7 +238,7 @@ export default function StorePage() {
     });
 
     setDrawer(true);
-    setSelected(null);
+    closeProductModal();
   };
 
   const updateQty = (id, color, delta) =>
@@ -563,16 +606,20 @@ Please confirm my order, delivery charges and payment details.`;
           </div>
 
           <div className="shop-tools">
-            <div className="category-pills">
-              {categories.map(c => (
-                <button
-                  key={c}
-                  className={category === c ? 'active' : ''}
-                  onClick={() => setCategory(c)}
-                >
-                  {c}
-                </button>
-              ))}
+            <div className="category-dropdown">
+              <label htmlFor="categoryFilter">Category</label>
+
+              <select
+                id="categoryFilter"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+              >
+                {categories.map(c => (
+                  <option key={c} value={c}>
+                    {c === 'All' ? 'All Categories' : c}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="search-sort">
@@ -602,7 +649,11 @@ Please confirm my order, delivery charges and payment details.`;
               <article
                 className="product-card"
                 key={p._id}
-                onClick={() => setSelected(p)}
+                onClick={() => {
+                  setSelected(p);
+                  setSelectedImageIndex(0);
+                  setImagePreviewOpen(false);
+                }}
               >
                 <div className={`product-visual visual-${i % 4}`}>
                   {p.images?.[0] ? (
@@ -755,7 +806,7 @@ Please confirm my order, delivery charges and payment details.`;
       {selected && (
         <div
           className="overlay"
-          onClick={() => setSelected(null)}
+          onClick={closeProductModal}
         >
           <div
             className="detail-modal"
@@ -763,24 +814,99 @@ Please confirm my order, delivery charges and payment details.`;
           >
             <button
               className="close"
-              onClick={() => setSelected(null)}
+              onClick={closeProductModal}
+              aria-label="Close product details"
             >
               <X />
             </button>
 
-            <div className="detail-image">
-              {selected.images?.[0] ? (
-                <img
-                  src={imageUrl(selected.images[0])}
-                  alt={selected.name}
-                />
+            {/* Product image gallery */}
+            <div className="detail-gallery">
+              {selected.images?.length > 0 ? (
+                <>
+                  <div className="gallery-main">
+                    <img
+                      src={imageUrl(selected.images[selectedImageIndex])}
+                      alt={`${selected.name} - Image ${selectedImageIndex + 1}`}
+                    />
+
+                    {selected.images.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          className="gallery-arrow gallery-prev"
+                          onClick={() =>
+                            setSelectedImageIndex(
+                              i =>
+                                (i - 1 + selected.images.length) %
+                                selected.images.length
+                            )
+                          }
+                          aria-label="Previous image"
+                        >
+                          <ChevronLeft />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="gallery-arrow gallery-next"
+                          onClick={() =>
+                            setSelectedImageIndex(
+                              i => (i + 1) % selected.images.length
+                            )
+                          }
+                          aria-label="Next image"
+                        >
+                          <ChevronRight />
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      type="button"
+                      className="gallery-expand"
+                      onClick={() => setImagePreviewOpen(true)}
+                      aria-label="View larger image"
+                    >
+                      <Maximize2 size={18} />
+                    </button>
+
+                    <span className="gallery-counter">
+                      {selectedImageIndex + 1} / {selected.images.length}
+                    </span>
+                  </div>
+
+                  {selected.images.length > 1 && (
+                    <div className="gallery-thumbnails">
+                      {selected.images.map((img, index) => (
+                        <button
+                          type="button"
+                          key={`${img}-${index}`}
+                          className={
+                            selectedImageIndex === index ? 'active' : ''
+                          }
+                          onClick={() => setSelectedImageIndex(index)}
+                          aria-label={`View image ${index + 1}`}
+                        >
+                          <img
+                            src={imageUrl(img)}
+                            alt={`${selected.name} thumbnail ${index + 1}`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="placeholder-object">
-                  <span>✳</span>
+                <div className="gallery-placeholder">
+                  <div className="placeholder-object">
+                    <span>✳</span>
+                  </div>
                 </div>
               )}
             </div>
 
+            {/* Product information */}
             <div className="detail-copy">
               <span className="eyebrow">{selected.category}</span>
               <h2>{selected.name}</h2>
@@ -822,19 +948,35 @@ Please confirm my order, delivery charges and payment details.`;
                 </select>
               </label>
 
-              <button
-                className="btn btn-dark full"
-                onClick={() => {
-                  const color =
-                    document.getElementById('chosenColor')?.value ||
-                    'Standard';
+              <div className="product-order-actions">
+                <button
+                  className="btn btn-outline full"
+                  onClick={() => {
+                    const color =
+                      document.getElementById('chosenColor')?.value ||
+                      'Standard';
 
-                  add(selected, color);
-                  setCheckout(true);
-                }}
-              >
-                Continue to Order <ArrowUpRight />
-              </button>
+                    add(selected, color);
+                  }}
+                >
+                  <Plus size={17} />
+                  Add to Bag
+                </button>
+
+                <button
+                  className="btn btn-dark full"
+                  onClick={() => {
+                    const color =
+                      document.getElementById('chosenColor')?.value ||
+                      'Standard';
+
+                    add(selected, color);
+                    setCheckout(true);
+                  }}
+                >
+                  Order Now <ArrowUpRight size={17} />
+                </button>
+              </div>
 
               <a
                 className="email-order-link"
@@ -848,6 +990,69 @@ Please confirm my order, delivery charges and payment details.`;
               </a>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Full-screen image preview */}
+      {imagePreviewOpen && selected?.images?.length > 0 && (
+        <div
+          className="image-preview-overlay"
+          onClick={() => setImagePreviewOpen(false)}
+        >
+          <button
+            type="button"
+            className="image-preview-close"
+            onClick={() => setImagePreviewOpen(false)}
+            aria-label="Close image preview"
+          >
+            <X size={24} />
+          </button>
+
+          {selected.images.length > 1 && (
+            <button
+              type="button"
+              className="image-preview-arrow preview-prev"
+              onClick={e => {
+                e.stopPropagation();
+
+                setSelectedImageIndex(
+                  i =>
+                    (i - 1 + selected.images.length) %
+                    selected.images.length
+                );
+              }}
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={30} />
+            </button>
+          )}
+
+          <img
+            src={imageUrl(selected.images[selectedImageIndex])}
+            alt={selected.name}
+            onClick={e => e.stopPropagation()}
+          />
+
+          {selected.images.length > 1 && (
+            <button
+              type="button"
+              className="image-preview-arrow preview-next"
+              onClick={e => {
+                e.stopPropagation();
+
+                setSelectedImageIndex(
+                  i => (i + 1) % selected.images.length
+                );
+              }}
+              aria-label="Next image"
+            >
+              <ChevronRight size={30} />
+            </button>
+          )}
+
+          <span className="image-preview-counter">
+            {selectedImageIndex + 1} / {selected.images.length}
+          </span>
         </div>
       )}
 
