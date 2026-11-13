@@ -205,3 +205,35 @@ footer { flex-wrap: wrap; gap: 18px 28px; }
     overscroll-behavior: contain;
   }
 }
+
+/* Trimerge direct ordering */
+.email-order-link {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 15px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.footer-contact h4 {
+  margin: 0 0 5px;
+  font-size: 12px;
+}
+
+.footer-contact a {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.footer-contact a:hover,
+.email-order-link:hover {
+  color: var(--ink);
+}
