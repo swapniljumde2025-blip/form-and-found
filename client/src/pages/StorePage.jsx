@@ -510,50 +510,48 @@ Please confirm my order, delivery charges and payment details.`;
       )}
 
       <main>
+         
         <section className="hero">
-          <div className="hero-copy">
-            <span className="eyebrow">
-              <Sparkles size={14} />
-              SMALL BATCH. BIG IMAGINATION.
-            </span>
+  <img
+    src="/trimerge-hero.png"
+    alt="A collection of colourful 3D printed creations by Trimerge"
+    className="hero-bg"
+  />
+  <div className="hero-scrim" />
 
-            <h1>
-              Make room
-              <br />
-              for <em>wonder.</em>
-            </h1>
+  <div className="hero-copy">
+    <span className="eyebrow">
+      <Sparkles size={14} />
+      SMALL BATCH. BIG IMAGINATION.
+    </span>
 
-            <p>
-              Freshly imagined objects for your desk, home and everyday
-              rituals. Designed with curiosity. Made layer by layer.
-            </p>
+    <h1>
+      Make room
+      <br />
+      for <em>wonder.</em>
+    </h1>
 
-            <a className="btn btn-dark" href="#shop">
-              Explore the collection <ArrowUpRight size={17} />
-            </a>
+    <p>
+      Freshly imagined objects for your desk, home and everyday
+      rituals. Designed with curiosity. Made layer by layer.
+    </p>
 
-            <div className="hero-note">
-              <span>01 / 03</span>
-              <i></i>
-              DESIGNED WITH INTENTION
-            </div>
-          </div>
+    <a className="btn btn-dark" href="#shop">
+      Explore the collection <ArrowUpRight size={17} />
+    </a>
 
-          <div className="hero-art">
-            <div className="art-orbit orbit-one"></div>
-            <div className="art-orbit orbit-two"></div>
-            <div className="hero-object">
-              <div className="vase-neck"></div>
-              <div className="vase-body"></div>
-              <div className="vase-base"></div>
-            </div>
-            <div className="art-label label-top">FORM STUDY Nº 01</div>
-            <div className="art-label label-bottom">
-              PRINTED, NOT MASS-PRODUCED.
-            </div>
-            <span className="art-star">✳</span>
-          </div>
-        </section>
+    <div className="hero-note">
+      <span>01 / 03</span>
+      <i></i>
+      DESIGNED WITH INTENTION
+    </div>
+  </div>
+</section>
+
+       
+
+
+
 
         <section className="trust-row">
           <div>
