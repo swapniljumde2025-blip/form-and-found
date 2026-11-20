@@ -629,7 +629,7 @@ footer { flex-wrap: wrap; gap: 18px 28px; }
 @media (max-width: 768px) {
   .hero.hero-carousel { min-height: 680px; }
   .hero-slide { align-items: flex-start; padding: 48px 7% 80px; }
-  .hero-carousel .hero-bg { object-position: center; }
+  .hero-carousel .hero-bg { object-position: 78% center; }
   .hero-carousel .hero-scrim { background: linear-gradient(180deg, rgba(22,27,24,.88) 0%, rgba(22,27,24,.62) 48%, rgba(22,27,24,.12) 100%); }
   .hero-carousel .hero-copy { max-width: 100%; }
   .hero-carousel .hero-copy h1 { font-size: clamp(48px, 12vw, 66px); }
