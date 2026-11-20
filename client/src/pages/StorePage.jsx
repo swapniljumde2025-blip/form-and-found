@@ -86,12 +86,51 @@ const blank = {
   images: []
 };
 
+const heroSlides = [
+  {
+    image: '/HeroMain.jpeg',
+    alt: 'New 3D-printed product collection from Trimerge',
+    eyebrow: 'NEW FROM TRIMERGE',
+    title: <>Made to <em>stand out.</em></>,
+    description: 'Fresh designs, thoughtful details and everyday objects reimagined through 3D printing.',
+    note: 'NEW PRODUCT COLLECTION'
+  },
+  {
+    image: '/lithoimg.jpeg',
+    alt: 'Glowing 3D-printed lithophane lamp',
+    eyebrow: 'LIGHT, LAYER BY LAYER',
+    title: <>A little <em>light.</em></>,
+    description: 'Turn your favourite moments into a glowing lithophane lamp, crafted layer by layer.',
+    note: 'LITHOPHANE LAMP'
+  },
+  {
+    image: '/lipstickeychain.jpeg',
+    alt: '3D-printed lipstick holder and keychain',
+    eyebrow: 'SMALL DESIGN. BIG PERSONALITY.',
+    title: <>Carry your <em>style.</em></>,
+    description: 'A playful lipstick holder and keychain, designed to keep your everyday essentials close.',
+    note: 'LIPSTICK HOLDER + KEYCHAIN'
+  }
+];
+
 export default function StorePage() {
   const [products, setProducts] = useState(demo);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [sort, setSort] = useState('featured');
+  const [activeHero, setActiveHero] = useState(0);
+
+  const showHero = (index) => {
+    setActiveHero((index + heroSlides.length) % heroSlides.length);
+  };
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveHero(current => (current + 1) % heroSlides.length);
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const [cart, setCart] = useState(
     () => JSON.parse(localStorage.getItem('store_cart') || '[]')
@@ -511,40 +550,51 @@ Please confirm my order, delivery charges and payment details.`;
 
       <main>
          
-        <section className="hero">
-  <img
-    src="/trimerge-hero.png"
-    alt="A collection of colourful 3D printed creations by Trimerge"
-    className="hero-bg"
-  />
-  <div className="hero-scrim" />
-
-  <div className="hero-copy">
-    <span className="eyebrow">
-      <Sparkles size={14} />
-      SMALL BATCH. BIG IMAGINATION.
-    </span>
-
-    <h1>
-      Make room
-      <br />
-      for <em>wonder.</em>
-    </h1>
-
-    <p>
-      Freshly imagined objects for your desk, home and everyday
-      rituals. Designed with curiosity. Made layer by layer.
-    </p>
-
-    <a className="btn btn-dark" href="#shop">
-      Explore the collection <ArrowUpRight size={17} />
-    </a>
-
-    <div className="hero-note">
-      <span>01 / 03</span>
-      <i></i>
-      DESIGNED WITH INTENTION
+        <section className="hero hero-carousel" aria-label="Featured Trimerge products">
+  {heroSlides.map((slide, index) => (
+    <div
+      className={`hero-slide ${index === activeHero ? 'is-active' : ''}`}
+      key={slide.image}
+      aria-hidden={index !== activeHero}
+    >
+      <img src={slide.image} alt={slide.alt} className="hero-bg" />
+      <div className="hero-scrim" />
+      <div className="hero-copy">
+        <span className="eyebrow">
+          <Sparkles size={14} />
+          {slide.eyebrow}
+        </span>
+        <h1>{slide.title}</h1>
+        <p>{slide.description}</p>
+        <a className="btn btn-dark" href="#shop">
+          Explore the collection <ArrowUpRight size={17} />
+        </a>
+        <div className="hero-note">
+          <span>{String(index + 1).padStart(2, '0')} / {String(heroSlides.length).padStart(2, '0')}</span>
+          <i></i>
+          {slide.note}
+        </div>
+      </div>
     </div>
+  ))}
+
+  <button className="hero-arrow hero-prev" type="button" aria-label="Previous featured product" onClick={() => showHero(activeHero - 1)}>
+    <ChevronLeft size={21} />
+  </button>
+  <button className="hero-arrow hero-next" type="button" aria-label="Next featured product" onClick={() => showHero(activeHero + 1)}>
+    <ChevronRight size={21} />
+  </button>
+  <div className="hero-dots" aria-label="Choose featured product">
+    {heroSlides.map((slide, index) => (
+      <button
+        key={slide.image}
+        type="button"
+        className={index === activeHero ? 'active' : ''}
+        aria-label={`Show featured slide ${index + 1}`}
+        aria-current={index === activeHero ? 'true' : undefined}
+        onClick={() => showHero(index)}
+      />
+    ))}
   </div>
 </section>
 

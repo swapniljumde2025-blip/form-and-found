@@ -589,3 +589,55 @@ footer { flex-wrap: wrap; gap: 18px 28px; }
     );
   }
 }
+
+/* Trimerge featured product carousel */
+.hero.hero-carousel {
+  display: block;
+  position: relative;
+  min-height: clamp(560px, 78vh, 840px);
+  padding: 0;
+  background: #1c221e;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: clamp(48px, 6vw, 96px) clamp(24px, 6vw, 96px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 800ms ease, visibility 800ms ease;
+}
+.hero-slide.is-active { opacity: 1; visibility: visible; z-index: 1; }
+.hero-carousel .hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: 0; }
+.hero-carousel .hero-scrim { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(22,27,24,.84) 0%, rgba(22,27,24,.56) 43%, rgba(22,27,24,.12) 78%, transparent 100%); }
+.hero-carousel .hero-copy { position: relative; z-index: 2; max-width: 540px; padding: 25px 0; }
+.hero-carousel .hero-copy .eyebrow { color: #d5e0b5; }
+.hero-carousel .hero-copy h1 { color: #fff; }
+.hero-carousel .hero-copy h1 em { color: #d4e1a0; }
+.hero-carousel .hero-copy>p { color: #e0e3dc; }
+.hero-carousel .hero-note { color: #e0e3dc; }
+.hero-arrow { position: absolute; z-index: 4; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid #ffffff70; border-radius: 50%; color: #fff; background: #18201965; cursor: pointer; transition: background .2s, border-color .2s; }
+.hero-arrow:hover { background: #d4e1a0; border-color: #d4e1a0; color: #20251f; }
+.hero-prev { left: 22px; }
+.hero-next { right: 22px; }
+.hero-dots { position: absolute; z-index: 4; bottom: 27px; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; align-items: center; }
+.hero-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 99px; background: #ffffff80; cursor: pointer; transition: width .25s, background .25s; }
+.hero-dots button.active { width: 27px; background: #d4e1a0; }
+@media (max-width: 768px) {
+  .hero.hero-carousel { min-height: 680px; }
+  .hero-slide { align-items: flex-start; padding: 48px 7% 80px; }
+  .hero-carousel .hero-bg { object-position: center; }
+  .hero-carousel .hero-scrim { background: linear-gradient(180deg, rgba(22,27,24,.88) 0%, rgba(22,27,24,.62) 48%, rgba(22,27,24,.12) 100%); }
+  .hero-carousel .hero-copy { max-width: 100%; }
+  .hero-carousel .hero-copy h1 { font-size: clamp(48px, 12vw, 66px); }
+  .hero-prev { left: 12px; }
+  .hero-next { right: 12px; }
+  .hero-arrow { top: auto; bottom: 19px; transform: none; width: 36px; height: 36px; }
+  .hero-dots { bottom: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide, .hero-arrow, .hero-dots button { transition: none; }
+}
